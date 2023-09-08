@@ -1,6 +1,8 @@
 name: buildfork
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
   
 jobs:
   build:
@@ -28,3 +30,19 @@ jobs:
         with:
           name: build
           path: build
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: production
+      url: tense-mailbox.surge.sh
+    steps:
+      - name: download the build artifact
+        uses: actions/download-artifact@v3.0.0
+        with:
+          name: build
+      - name: deploy to surge
+        run: npx surge --project '.' --domain tense-mailbox.surge.sh
+        env:
+          SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
+          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
